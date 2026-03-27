@@ -300,7 +300,6 @@ h2 {
 .panel {
   border-radius: var(--radius-lg);
   padding: 24px;
-  overflow: hidden;
   min-width: 0;
 }
 
@@ -317,7 +316,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-width: 640px;
+  width: 100%;
 }
 
 .global-search-label > span {
@@ -366,7 +365,7 @@ h2 {
 }
 
 .updates-table {
-  min-width: 480px;
+  min-width: 620px;
 }
 
 .search-term-cell {
@@ -776,7 +775,7 @@ textarea {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 640px;
+  min-width: 960px;
 }
 
 th,
