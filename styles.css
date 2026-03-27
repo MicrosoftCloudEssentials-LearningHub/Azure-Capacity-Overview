@@ -292,10 +292,56 @@ textarea {
 }
 
 .provider-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.provider-group {
+  border: 1px solid rgba(74, 53, 32, 0.12);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 253, 249, 0.7);
+  overflow: hidden;
+}
+
+.provider-group summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.provider-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.provider-group summary span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.provider-group summary::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--accent-strong);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.provider-group[open] summary::after {
+  content: "-";
+}
+
+.provider-options-group {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  padding: 0 14px 14px;
 }
 
 .provider-chip,

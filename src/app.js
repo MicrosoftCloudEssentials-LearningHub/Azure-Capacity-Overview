@@ -34,11 +34,6 @@ const elements = {
   scopeColumnHeader: document.querySelector("#scope-column-header"),
 };
 
-bootstrap().catch((error) => {
-  console.error(error);
-  setStatus(error.message || "Failed to initialize the dashboard.", "bad");
-});
-
 async function bootstrap() {
   elements.providerOptions.innerHTML = createProviderOptionsMarkup();
   hydrateSavedSettings();
@@ -684,6 +679,11 @@ const REGION_METADATA = {
   newzealandnorth: { displayName: "New Zealand North", geography: "New Zealand" },
   taiwan: { displayName: "Taiwan", geography: "Taiwan" },
 };
+
+bootstrap().catch((error) => {
+  console.error(error);
+  setStatus(error.message || "Failed to initialize the dashboard.", "bad");
+});
 
 function getSelectedProviderIds() {
   return [...elements.providerOptions.querySelectorAll('input[type="checkbox"]:checked')].map(

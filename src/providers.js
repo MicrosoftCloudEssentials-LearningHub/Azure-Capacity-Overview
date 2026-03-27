@@ -189,14 +189,46 @@ export function getProvider(providerId) {
 }
 
 export function createProviderOptionsMarkup() {
-  return PROVIDERS.map(
-    (provider) => `
-      <label class="provider-chip">
-        <input type="checkbox" value="${provider.id}" checked />
-        <span>${provider.label}</span>
-      </label>
-    `,
-  ).join("");
+  const groups = [
+    {
+      title: "Rich SKU and capability providers",
+      open: true,
+      providerIds: ["compute-skus", "sql-capabilities", "cognitive-skus"],
+    },
+    {
+      title: "Broad provider metadata coverage",
+      open: false,
+      providerIds: PROVIDERS.filter((provider) => !["compute-skus", "sql-capabilities", "cognitive-skus"].includes(provider.id)).map(
+        (provider) => provider.id,
+      ),
+    },
+  ];
+
+  return groups
+    .map((group) => {
+      const groupProviders = group.providerIds
+        .map((providerId) => PROVIDER_MAP.get(providerId))
+        .filter(Boolean);
+
+      return `
+        <details class="provider-group" ${group.open ? "open" : ""}>
+          <summary>${group.title}<span>${groupProviders.length}</span></summary>
+          <div class="provider-options-group">
+            ${groupProviders
+              .map(
+                (provider) => `
+                  <label class="provider-chip">
+                    <input type="checkbox" value="${provider.id}" checked />
+                    <span>${provider.label}</span>
+                  </label>
+                `,
+              )
+              .join("")}
+          </div>
+        </details>
+      `;
+    })
+    .join("");
 }
 
 function normalizeSqlCapabilities(subscriptionId, region, payload) {
