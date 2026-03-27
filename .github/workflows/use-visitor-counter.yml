@@ -1,0 +1,80 @@
+name: Use Visitor Counter Logic
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering
+  # schedule:
+  # - cron: '0 0 * * *' # Runs daily at midnight
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-visitor-count:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Shallow clone visitor counter logic
+        run: git clone --depth=1 https://github.com/brown9804/github-visitor-counter.git
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for github-visitor-counter
+        run: |
+          cd github-visitor-counter
+          npm ci
+
+      - name: Run visitor counter logic (updates markdown badges and metrics.json)
+        run: node github-visitor-counter/update_repo_views_counter.js
+        env:
+          TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+          REPO: ${{ github.repository }}
+
+      - name: Move generated metrics.json to root
+        run: mv github-visitor-counter/metrics.json .
+
+      - name: List files for debugging
+        run: |
+          ls -l
+          ls -l github-visitor-counter
+
+      - name: Clean up visitor counter logic
+        run: rm -rf github-visitor-counter
+
+      - name: Configure Git author
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and merge changes
+        env:
+          PR_BRANCH: ${{ github.head_ref || github.ref_name }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+        run: |
+          # Ensure we're on the correct branch
+          git switch -c "$PR_BRANCH" || git switch "$PR_BRANCH"
+          
+          # Stage and commit changes if any
+          git add -A
+          git diff --staged --quiet || git commit -m "Update visitor count"
+          
+          # Pull and merge existing changes
+          git pull origin "$PR_BRANCH" --no-rebase
+          
+          # Push all changes
+          git push origin "$PR_BRANCH"
