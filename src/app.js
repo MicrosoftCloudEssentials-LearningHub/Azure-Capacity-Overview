@@ -39,6 +39,7 @@ const elements = {
   tableBody: document.querySelector("#capacity-table-body"),
   tableHead: document.querySelector("thead"),
   scopeColumnHeader: document.querySelector("#scope-column-header"),
+  filterChips: document.querySelector("#filter-chips"),
 };
 
 async function bootstrap() {
@@ -58,6 +59,7 @@ function wireEvents() {
   elements.tableBody.addEventListener("click", handleSourceActionClick);
   elements.updatesTableBody.addEventListener("click", handleSourceActionClick);
   elements.tableHead.addEventListener("click", handleTableSortClick);
+  elements.filterChips.addEventListener("click", handleChipClick);
 
   [
     elements.searchInput,
@@ -420,6 +422,89 @@ function applyFilters() {
 
   renderUpdatesTable(state.filteredRecords, rawSearchTerm);
   renderTable(state.filteredRecords, rawSearchTerm);
+  renderFilterChips();
+}
+
+function renderFilterChips() {
+  const chips = [];
+
+  const searchTerms = elements.searchInput.value.trim().split(/\s+/).filter(Boolean);
+  for (const term of searchTerms) {
+    chips.push({ label: term, filterType: "search", value: term });
+  }
+
+  const riskLabels = { restricted: "Restricted", preview: "Limited / Preview", available: "Available" };
+  if (elements.riskFilter.value !== "all") {
+    chips.push({ label: `Status: ${riskLabels[elements.riskFilter.value] || elements.riskFilter.value}`, filterType: "availability" });
+  }
+
+  const planningLabels = { "available-now": "Available now", roadmap: "Preview / rollout", constraints: "Restrictions" };
+  if (elements.planningFilter.value !== "all") {
+    chips.push({ label: `Horizon: ${planningLabels[elements.planningFilter.value] || elements.planningFilter.value}`, filterType: "planning" });
+  }
+
+  if (elements.providerFilter.value !== "all") {
+    chips.push({ label: `Provider: ${elements.providerFilter.value}`, filterType: "provider" });
+  }
+
+  if (elements.regionFilter.value !== "all") {
+    chips.push({ label: `Region: ${elements.regionFilter.value}`, filterType: "region" });
+  }
+
+  if (elements.atRiskToggle.checked) {
+    chips.push({ label: "Restricted or limited only", filterType: "at-risk" });
+  }
+
+  if (chips.length === 0) {
+    elements.filterChips.hidden = true;
+    elements.filterChips.innerHTML = "";
+    return;
+  }
+
+  elements.filterChips.hidden = false;
+  elements.filterChips.innerHTML = chips
+    .map(
+      (chip) =>
+        `<button class="filter-chip" type="button" data-filter-type="${escapeAttribute(chip.filterType)}"${chip.value ? ` data-filter-value="${escapeAttribute(chip.value)}"` : ""} aria-label="Remove filter: ${escapeAttribute(chip.label)}">${escapeHtml(chip.label)}<span class="filter-chip-remove" aria-hidden="true">&#x00D7;</span></button>`,
+    )
+    .join("");
+}
+
+function handleChipClick(event) {
+  const chip = event.target.closest(".filter-chip");
+  if (!chip) {
+    return;
+  }
+
+  const filterType = chip.dataset.filterType;
+  const filterValue = chip.dataset.filterValue;
+
+  switch (filterType) {
+    case "search": {
+      const currentTerms = elements.searchInput.value.trim().split(/\s+/).filter(Boolean);
+      elements.searchInput.value = currentTerms.filter((t) => t !== filterValue).join(" ");
+      break;
+    }
+    case "availability":
+      elements.riskFilter.value = "all";
+      break;
+    case "planning":
+      elements.planningFilter.value = "all";
+      break;
+    case "provider":
+      elements.providerFilter.value = "all";
+      break;
+    case "region":
+      elements.regionFilter.value = "all";
+      break;
+    case "at-risk":
+      elements.atRiskToggle.checked = false;
+      break;
+    default:
+      break;
+  }
+
+  applyFilters();
 }
 
 function renderEmptyUpdatesTable() {
