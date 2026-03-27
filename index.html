@@ -16,11 +16,11 @@
     <div class="page-shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">Static Azure API discovery dashboard</p>
+          <p class="eyebrow">Static Azure availability dashboard</p>
           <h1>Azure Capacity Overview</h1>
           <p class="hero-copy">
-            Refresh live Azure regional availability, supported SKUs, and deployment
-            capability signals on demand so new projects can plan ahead before landing in a region.
+            Refresh an overview of Azure regional availability, supported SKUs, and deployment
+            capability signals for new workloads without sign-in or subscription scope.
           </p>
         </div>
 
@@ -35,69 +35,21 @@
           <div class="section-heading">
             <div>
               <p class="section-kicker">Configuration</p>
-              <h2>Azure API scope</h2>
+              <h2>Overview inputs</h2>
             </div>
             <div class="actions-inline">
-              <button id="demo-button" class="ghost-button" type="button">Load demo data</button>
+              <button id="demo-button" class="ghost-button" type="button">Load overview data</button>
               <button id="refresh-button" class="primary-button" type="button">Refresh data</button>
             </div>
           </div>
 
           <div class="form-grid">
             <label class="field">
-              <span>Tenant ID or domain</span>
-              <input
-                id="tenant-input"
-                type="text"
-                placeholder="organizations or contoso.onmicrosoft.com"
-              />
-            </label>
-
-            <label class="field">
-              <span>App registration client ID</span>
-              <input
-                id="client-id-input"
-                type="text"
-                placeholder="00000000-0000-0000-0000-000000000000"
-              />
-            </label>
-
-            <label class="field field-full">
-              <span>Redirect URI</span>
-              <input id="redirect-uri-input" type="text" readonly />
-            </label>
-
-            <div class="field field-full auth-card">
-              <span>Microsoft Entra session</span>
-              <div class="auth-session-row">
-                <div>
-                  <strong id="account-label">Not signed in</strong>
-                  <p id="auth-helper" class="helper-text auth-helper">
-                    Configure the tenant and client ID, then sign in to acquire Azure Resource Manager tokens with MSAL.
-                  </p>
-                </div>
-                <div class="actions-inline">
-                  <button id="sign-in-button" class="ghost-button" type="button">Sign in</button>
-                  <button id="sign-out-button" class="ghost-button" type="button">Sign out</button>
-                </div>
-              </div>
-            </div>
-
-            <label class="field">
-              <span>Azure scope subscription IDs</span>
-              <textarea
-                id="subscriptions-input"
-                rows="4"
-                placeholder="One subscription ID per line or comma-separated"
-              ></textarea>
-            </label>
-
-            <label class="field">
               <span>Target regions</span>
               <textarea
                 id="regions-input"
                 rows="4"
-                placeholder="Optional. Leave blank and enable auto-discovery to scan available regions"
+                placeholder="Optional. Leave blank to use the default overview regions"
               ></textarea>
             </label>
 
@@ -105,15 +57,10 @@
               <legend>Availability providers</legend>
               <div id="provider-options" class="provider-options"></div>
             </fieldset>
-
-            <label class="checkbox-row">
-              <input id="autodiscover-toggle" type="checkbox" checked />
-              <span>Auto-discover physical Azure regions when the region list is empty</span>
-            </label>
           </div>
 
           <p class="helper-text">
-            Azure does not expose a public global "free capacity left" feed. This dashboard queries Azure Resource Manager directly, using subscription scope where ARM availability and SKU APIs require it, then shows what regions, resource types, and SKUs are deployable for new workloads.
+            Azure does not expose a public global "free capacity left" feed. This dashboard shows an overview of Azure resource availability using a built-in catalog of regions, SKUs, and provider signals without requiring sign-in or subscription scope.
           </p>
         </section>
 
@@ -174,7 +121,7 @@
               </select>
             </label>
 
-            <label class="field">
+            <label id="scope-filter-field" class="field" hidden>
               <span>Azure scope</span>
               <select id="subscription-filter">
                 <option value="all">All scopes</option>
@@ -212,7 +159,7 @@
                   <th>Provider</th>
                   <th>Offer</th>
                   <th>Resource Type</th>
-                  <th>Azure Scope</th>
+                  <th id="scope-column-header" hidden>Azure Scope</th>
                   <th>Region</th>
                   <th>Metric</th>
                   <th>Value</th>
@@ -221,7 +168,7 @@
               </thead>
               <tbody id="capacity-table-body">
                 <tr>
-                  <td colspan="9" class="empty-table">Refresh data or load the demo view to populate the dashboard.</td>
+                  <td colspan="8" class="empty-table">Refresh data or load the overview view to populate the dashboard.</td>
                 </tr>
               </tbody>
             </table>
