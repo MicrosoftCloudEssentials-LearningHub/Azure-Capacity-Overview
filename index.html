@@ -44,8 +44,8 @@
         <section class="panel controls-panel">
           <div class="section-heading">
             <div>
-              <p class="section-kicker">Planning setup</p>
               <h2>Regions and providers</h2>
+              <p class="panel-intro">Choose the regions and provider signals you want to compare, then refresh the view.</p>
             </div>
             <div class="actions-inline">
               <button id="demo-button" class="ghost-button" type="button">Load overview data</button>
@@ -80,44 +80,48 @@
           </p>
         </section>
 
-        <section class="panel summary-panel">
-          <div class="section-heading compact-heading">
+        <section class="panel overview-panel">
+          <div class="overview-header">
             <div>
-              <p class="section-kicker">Current view</p>
-              <h2>What is available now</h2>
-              <p class="panel-intro">Counts of available and limited offers across the regions and providers in the current view.</p>
+              <h2>Availability overview</h2>
+              <p class="panel-intro">A quick read on what is ready, what is limited, and which providers need a closer look.</p>
             </div>
             <div id="status-badge" class="status-badge neutral">Awaiting refresh</div>
           </div>
 
-          <div id="summary-cards" class="summary-cards"></div>
-          <div id="provider-breakdown" class="provider-breakdown"></div>
-        </section>
+          <div class="overview-grid">
+            <div class="overview-block metrics-block">
+              <div class="block-heading">
+                <h3>Current counts</h3>
+                <p class="block-copy">Totals for the regions and providers currently in view.</p>
+              </div>
+              <div id="summary-cards" class="summary-cards"></div>
+              <div id="provider-breakdown" class="provider-breakdown"></div>
+            </div>
 
-        <section class="panel insights-panel">
-          <div class="section-heading compact-heading">
-            <div>
-              <p class="section-kicker">Action items</p>
-              <h2>What needs attention</h2>
-              <p class="panel-intro">The highest-priority restricted and preview items from the current filtered results.</p>
+            <div class="overview-block attention-block">
+              <div class="block-heading">
+                <h3>Needs attention</h3>
+                <p class="block-copy">Restricted and preview items that are most likely to affect planning.</p>
+              </div>
+              <div id="priority-list" class="priority-list empty-state">
+                Refresh data to surface the highest-priority availability signals.
+              </div>
             </div>
           </div>
-
-          <div id="priority-list" class="priority-list empty-state">
-            Refresh data to surface the highest-priority availability signals.
-          </div>
         </section>
 
-        <section class="panel filters-panel">
-          <div class="section-heading compact-heading">
+        <section class="panel workspace-panel">
+          <div class="workspace-header">
             <div>
-              <p class="section-kicker">Explore</p>
-              <h2>Search and filters</h2>
+              <h2>Availability results</h2>
+              <p class="panel-intro">Filter the current dataset, then review the detailed rows and source links below.</p>
             </div>
+            <p id="table-meta" class="table-meta">No availability data loaded</p>
           </div>
 
-          <div class="filter-grid">
-            <label class="field">
+          <div class="filter-grid workspace-filters">
+            <label class="field field-search">
               <span>Search</span>
               <input id="search-input" type="search" placeholder="Offer, provider, resource type, region" />
             </label>
@@ -153,20 +157,10 @@
               </select>
             </label>
 
-            <label class="checkbox-row">
+            <label class="checkbox-row results-toggle">
               <input id="at-risk-toggle" type="checkbox" />
               <span>Only show restricted or limited rows</span>
             </label>
-          </div>
-        </section>
-
-        <section class="panel table-panel">
-          <div class="section-heading compact-heading">
-            <div>
-              <p class="section-kicker">Results</p>
-              <h2>Availability table</h2>
-            </div>
-            <p id="table-meta" class="table-meta">No availability data loaded</p>
           </div>
 
           <div class="table-wrap">
