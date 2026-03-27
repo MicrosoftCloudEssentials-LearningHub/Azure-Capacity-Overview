@@ -543,29 +543,8 @@ function getTableColumnCount() {
 }
 
 function getSourceUrl(record) {
-  const providerPublicSources = {
-    "compute-skus": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "sql-capabilities": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "cognitive-skus": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "web-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "network-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "storage-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "aks-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "postgres-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "mysql-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "cosmos-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "cache-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "search-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "eventhub-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "servicebus-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "keyvault-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "app-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "signalr-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "ml-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-    "databricks-metadata": "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table",
-  };
-
-  return providerPublicSources[record.providerId] || "https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table";
+  const params = new URLSearchParams({ q: buildSourceSearchQuery(record) });
+  return `https://azure.microsoft.com/en-us/search/?${params.toString()}`;
 }
 
 function getSourceLabel(record) {
@@ -573,8 +552,138 @@ function getSourceLabel(record) {
 }
 
 function getSourceTitle(record) {
-  return `Open Microsoft's public Azure regional availability references to verify ${record.providerLabel} in ${record.region}. These links are not subscription-scoped.`;
+  return `Search Azure public pages for ${getSourceProductName(record)} in ${getRegionDisplayName(record.region)}${getGeographyName(record.region) ? `, ${getGeographyName(record.region)}` : ""}.`;
 }
+
+function buildSourceSearchQuery(record) {
+  const queryParts = [
+    getSourceProductName(record),
+    getRegionDisplayName(record.region),
+    getGeographyName(record.region),
+    "products by region",
+    "availability",
+  ];
+
+  if (record.name) {
+    queryParts.push(record.name);
+  }
+
+  return queryParts.filter(Boolean).join(" ");
+}
+
+function getSourceProductName(record) {
+  const providerProductNames = {
+    "compute-skus": "Azure Virtual Machines",
+    "sql-capabilities": "Azure SQL",
+    "cognitive-skus": record.name.includes("OpenAI") ? "Azure OpenAI" : "Azure AI Services",
+    "web-metadata": "Azure App Service",
+    "network-metadata": "Azure Networking",
+    "storage-metadata": "Azure Storage",
+    "aks-metadata": "Azure Kubernetes Service",
+    "postgres-metadata": "Azure Database for PostgreSQL",
+    "mysql-metadata": "Azure Database for MySQL",
+    "cosmos-metadata": "Azure Cosmos DB",
+    "cache-metadata": "Azure Cache for Redis",
+    "search-metadata": "Azure AI Search",
+    "eventhub-metadata": "Azure Event Hubs",
+    "servicebus-metadata": "Azure Service Bus",
+    "keyvault-metadata": "Azure Key Vault",
+    "app-metadata": "Azure Container Apps",
+    "signalr-metadata": "Azure SignalR Service",
+    "ml-metadata": "Azure Machine Learning",
+    "databricks-metadata": "Azure Databricks",
+  };
+
+  return providerProductNames[record.providerId] || record.providerLabel;
+}
+
+function getRegionDisplayName(region) {
+  const metadata = REGION_METADATA[region];
+  if (metadata?.displayName) {
+    return metadata.displayName;
+  }
+
+  return region
+    .replace(/([a-z])([0-9])/g, "$1 $2")
+    .replace(/([a-z])(us|uk|uae)$/i, "$1 $2")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .split(/(?=[A-Z])|\s+/)
+    .join(" ")
+    .replace(/\bUs\b/g, "US")
+    .replace(/\bUk\b/g, "UK")
+    .replace(/\bUae\b/g, "UAE")
+    .replace(/(^|\s)([a-z])/g, (match) => match.toUpperCase())
+    .trim();
+}
+
+function getGeographyName(region) {
+  return REGION_METADATA[region]?.geography || "";
+}
+
+const REGION_METADATA = {
+  eastus: { displayName: "East US", geography: "United States" },
+  eastus2: { displayName: "East US 2", geography: "United States" },
+  eastus3: { displayName: "East US 3", geography: "United States" },
+  centralus: { displayName: "Central US", geography: "United States" },
+  northcentralus: { displayName: "North Central US", geography: "United States" },
+  southcentralus: { displayName: "South Central US", geography: "United States" },
+  westcentralus: { displayName: "West Central US", geography: "United States" },
+  westus: { displayName: "West US", geography: "United States" },
+  westus2: { displayName: "West US 2", geography: "United States" },
+  westus3: { displayName: "West US 3", geography: "United States" },
+  canadacentral: { displayName: "Canada Central", geography: "Canada" },
+  canadaeast: { displayName: "Canada East", geography: "Canada" },
+  brazilsouth: { displayName: "Brazil South", geography: "Brazil" },
+  brazilsoutheast: { displayName: "Brazil Southeast", geography: "Brazil" },
+  mexicocentral: { displayName: "Mexico Central", geography: "Mexico" },
+  chilenorthcentral: { displayName: "Chile North Central", geography: "Chile" },
+  northeurope: { displayName: "North Europe", geography: "Europe" },
+  westeurope: { displayName: "West Europe", geography: "Europe" },
+  francecentral: { displayName: "France Central", geography: "France" },
+  francesouth: { displayName: "France South", geography: "France" },
+  germanynorth: { displayName: "Germany North", geography: "Germany" },
+  germanywestcentral: { displayName: "Germany West Central", geography: "Germany" },
+  italynorth: { displayName: "Italy North", geography: "Italy" },
+  polandcentral: { displayName: "Poland Central", geography: "Poland" },
+  spaincentral: { displayName: "Spain Central", geography: "Spain" },
+  swedencentral: { displayName: "Sweden Central", geography: "Sweden" },
+  swedensouth: { displayName: "Sweden South", geography: "Sweden" },
+  switzerlandnorth: { displayName: "Switzerland North", geography: "Switzerland" },
+  switzerlandwest: { displayName: "Switzerland West", geography: "Switzerland" },
+  uksouth: { displayName: "UK South", geography: "United Kingdom" },
+  ukwest: { displayName: "UK West", geography: "United Kingdom" },
+  norwayeast: { displayName: "Norway East", geography: "Norway" },
+  norwaywest: { displayName: "Norway West", geography: "Norway" },
+  austriaeast: { displayName: "Austria East", geography: "Austria" },
+  belgiumcentral: { displayName: "Belgium Central", geography: "Belgium" },
+  denmarkeast: { displayName: "Denmark East", geography: "Denmark" },
+  finlandcentral: { displayName: "Finland Central", geography: "Finland" },
+  greece: { displayName: "Greece", geography: "Greece" },
+  southafricanorth: { displayName: "South Africa North", geography: "Africa" },
+  southafricawest: { displayName: "South Africa West", geography: "Africa" },
+  qatarcentral: { displayName: "Qatar Central", geography: "Qatar" },
+  uaecentral: { displayName: "UAE Central", geography: "United Arab Emirates" },
+  uaenorth: { displayName: "UAE North", geography: "United Arab Emirates" },
+  saudiarabiaeast: { displayName: "Saudi Arabia East", geography: "Saudi Arabia" },
+  israelcentral: { displayName: "Israel Central", geography: "Israel" },
+  eastasia: { displayName: "East Asia", geography: "Asia Pacific" },
+  southeastasia: { displayName: "Southeast Asia", geography: "Asia Pacific" },
+  australiacentral: { displayName: "Australia Central", geography: "Australia" },
+  australiacentral2: { displayName: "Australia Central 2", geography: "Australia" },
+  australiaeast: { displayName: "Australia East", geography: "Australia" },
+  australiasoutheast: { displayName: "Australia Southeast", geography: "Australia" },
+  centralindia: { displayName: "Central India", geography: "India" },
+  southindia: { displayName: "South India", geography: "India" },
+  westindia: { displayName: "West India", geography: "India" },
+  japaneast: { displayName: "Japan East", geography: "Japan" },
+  japanwest: { displayName: "Japan West", geography: "Japan" },
+  koreacentral: { displayName: "Korea Central", geography: "Korea" },
+  koreasouth: { displayName: "Korea South", geography: "Korea" },
+  indonesiacentral: { displayName: "Indonesia Central", geography: "Indonesia" },
+  malaysiawest: { displayName: "Malaysia West", geography: "Malaysia" },
+  newzealandnorth: { displayName: "New Zealand North", geography: "New Zealand" },
+  taiwan: { displayName: "Taiwan", geography: "Taiwan" },
+};
 
 function getSelectedProviderIds() {
   return [...elements.providerOptions.querySelectorAll('input[type="checkbox"]:checked')].map(
