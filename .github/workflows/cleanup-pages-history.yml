@@ -1,0 +1,93 @@
+name: Cleanup Pages History
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy GitHub Pages
+    types:
+      - completed
+
+permissions:
+  actions: write
+  contents: read
+  deployments: write
+
+jobs:
+  cleanup:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep only the latest successful Pages workflow run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const workflowId = 'deploy-pages.yml';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+              owner,
+              repo,
+              workflow_id: workflowId,
+              per_page: 100,
+            });
+
+            const successfulRuns = runs
+              .filter((run) => run.conclusion === 'success' && run.status === 'completed')
+              .sort((left, right) => new Date(right.created_at) - new Date(left.created_at));
+
+            const runsToDelete = successfulRuns.slice(1);
+            core.info(`Found ${successfulRuns.length} successful Pages runs. Keeping 1 and deleting ${runsToDelete.length}.`);
+
+            for (const run of runsToDelete) {
+              core.info(`Deleting workflow run ${run.id} created at ${run.created_at}.`);
+              await github.rest.actions.deleteWorkflowRun({
+                owner,
+                repo,
+                run_id: run.id,
+              });
+            }
+
+      - name: Keep only the latest Pages deployment record
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const deployments = await github.paginate(github.rest.repos.listDeployments, {
+              owner,
+              repo,
+              environment: 'github-pages',
+              per_page: 100,
+            });
+
+            const sortedDeployments = deployments.sort(
+              (left, right) => new Date(right.created_at) - new Date(left.created_at)
+            );
+
+            const latestDeployment = sortedDeployments[0];
+            const deploymentsToDelete = sortedDeployments.slice(1);
+
+            core.info(
+              `Found ${sortedDeployments.length} github-pages deployments. Keeping ${latestDeployment ? latestDeployment.id : 'none'} and deleting ${deploymentsToDelete.length}.`
+            );
+
+            for (const deployment of deploymentsToDelete) {
+              core.info(`Marking deployment ${deployment.id} inactive before deletion.`);
+              await github.rest.repos.createDeploymentStatus({
+                owner,
+                repo,
+                deployment_id: deployment.id,
+                state: 'inactive',
+                auto_inactive: false,
+                description: 'Removed old Pages deployment record',
+              });
+
+              core.info(`Deleting deployment ${deployment.id}.`);
+              await github.rest.repos.deleteDeployment({
+                owner,
+                repo,
+                deployment_id: deployment.id,
+              });
+            }
