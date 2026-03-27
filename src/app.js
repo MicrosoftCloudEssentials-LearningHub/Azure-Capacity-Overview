@@ -679,7 +679,18 @@ function populateFilterOptions(records) {
     ["all", ...uniqueValues(records.map((record) => record.subscriptionId))],
     "All scopes",
   );
-  setSelectOptions(elements.regionFilter, ["all", ...uniqueValues(records.map((record) => record.region))], "All regions");
+
+  // Region dropdown: value = region key, label = display name
+  const regionKeys = uniqueValues(records.map((record) => record.region));
+  const regionSelect = elements.regionFilter;
+  const prevValue = regionSelect.value;
+  regionSelect.innerHTML = [
+    `<option value="all">All regions</option>`,
+    ...regionKeys.map((key) => `<option value="${escapeHtml(key)}">${escapeHtml(getRegionDisplayName(key))}</option>`),
+  ].join("");
+  if (regionKeys.includes(prevValue)) {
+    regionSelect.value = prevValue;
+  }
 }
 
 function applyFilters() {
@@ -825,21 +836,34 @@ function renderEmptyUpdatesTable() {
 }
 
 function renderUpdatesTable(records, rawSearchTerm = "") {
-  const updatesRows = records
+  // Deduplicate by product variant (providerId + name) — keep the row with the
+  // highest severity so the planning signal reflects the worst regional state.
+  const byProduct = new Map();
+  for (const record of records) {
+    const key = `${record.providerId}::${record.name}`;
+    const existing = byProduct.get(key);
+    if (!existing || record.severity > existing.severity) {
+      byProduct.set(key, record);
+    }
+  }
+
+  const updatesRows = [...byProduct.values()]
     .map((record) => ({
       ...record,
       planningSignalLabel: getPlanningSignalLabel(record),
+      // Count how many of the current filtered records share this product
+      regionCount: records.filter((r) => r.providerId === record.providerId && r.name === record.name).length,
     }))
     .sort((left, right) => {
       return (
         right.severity - left.severity ||
         getSourceProductName(left).localeCompare(getSourceProductName(right)) ||
-        getRegionDisplayName(left.region).localeCompare(getRegionDisplayName(right.region))
+        left.name.localeCompare(right.name)
       );
     });
 
   elements.updatesMeta.textContent = updatesRows.length
-    ? `${updatesRows.length} Azure Updates search${updatesRows.length === 1 ? "" : "es"} ready`
+    ? `${updatesRows.length} product${updatesRows.length === 1 ? "" : "s"} · ${records.length} region match${records.length === 1 ? "" : "es"}`
     : state.allRecords.length
       ? "No Azure Updates rows match the current filters"
       : "No Azure update rows prepared";
@@ -861,7 +885,7 @@ function renderUpdatesTable(records, rawSearchTerm = "") {
               <span class="search-term-note">Paste-ready term for Azure Updates</span>
             </div>
           </td>
-          <td>${renderHighlightedText(getRegionDisplayName(record.region), rawSearchTerm)}</td>
+          <td>${record.regionCount > 1 ? `<span title="${record.regionCount} regions in current filter">${record.regionCount} regions</span>` : renderHighlightedText(getRegionDisplayName(record.region), rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.notes || "", rawSearchTerm)}</td>
           <td>
             <div class="source-actions">
