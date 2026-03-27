@@ -470,38 +470,38 @@ function renderTable(records) {
 function renderSourceActions(record) {
   return `
     <div class="source-actions">
-      <a class="source-link" href="${escapeAttribute(record.sourceUrl)}" target="_blank" rel="noreferrer" title="${escapeAttribute(record.sourceTitle)}">Open</a>
+      <a class="source-link" href="${escapeAttribute(record.sourceUrl)}" target="_blank" rel="noreferrer" title="${escapeAttribute(record.sourceTitle)}">Open table</a>
       <button
         class="source-copy-button"
         type="button"
-        data-copy-url="${escapeAttribute(record.sourceUrl)}"
+        data-copy-text="${escapeAttribute(buildSourceFilterCopyText(record))}"
         data-copy-label="${escapeAttribute(record.name)}"
-        title="Copy the verification URL for this row"
+        title="Copy the product and geography values for the Azure Products by Region page"
       >
-        Copy
+        Copy filters
       </button>
     </div>
   `;
 }
 
 async function handleSourceActionClick(event) {
-  const copyButton = event.target.closest("[data-copy-url]");
+  const copyButton = event.target.closest("[data-copy-text]");
   if (!copyButton) {
     return;
   }
 
-  const url = copyButton.getAttribute("data-copy-url");
+  const copyText = copyButton.getAttribute("data-copy-text");
   const label = copyButton.getAttribute("data-copy-label") || "row";
-  if (!url) {
+  if (!copyText) {
     return;
   }
 
   try {
-    await navigator.clipboard.writeText(url);
-    setStatus(`Copied public source link for ${label}.`, "good");
+    await navigator.clipboard.writeText(copyText);
+    setStatus(`Copied table filters for ${label}.`, "good");
     flashCopiedState(copyButton);
   } catch {
-    setStatus("Failed to copy the public source link.", "warn");
+    setStatus("Failed to copy the table filters.", "warn");
   }
 }
 
@@ -538,8 +538,13 @@ function getTableColumnCount() {
 }
 
 function getSourceUrl(record) {
-  const params = new URLSearchParams({ q: buildSourceSearchQuery(record) });
-  return `https://azure.microsoft.com/en-us/search/?${params.toString()}`;
+  const fragment = new URLSearchParams({
+    product: getSourceProductName(record),
+    geography: getGeographyName(record.region) || "All",
+    region: getRegionDisplayName(record.region),
+  });
+
+  return `https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/table#${fragment.toString()}`;
 }
 
 function getSourceLabel(record) {
@@ -547,23 +552,22 @@ function getSourceLabel(record) {
 }
 
 function getSourceTitle(record) {
-  return `Search Azure public pages for ${getSourceProductName(record)} in ${getRegionDisplayName(record.region)}${getGeographyName(record.region) ? `, ${getGeographyName(record.region)}` : ""}.`;
+  return `Open Azure Product Availability by Region. Then use Search Products = ${getSourceProductName(record)} and Geography = ${getGeographyName(record.region) || "All"}.`;
 }
 
-function buildSourceSearchQuery(record) {
-  const queryParts = [
-    getSourceProductName(record),
-    getRegionDisplayName(record.region),
-    getGeographyName(record.region),
-    "products by region",
-    "availability",
-  ];
+function buildSourceFilterCopyText(record) {
+  const productName = getSourceProductName(record);
+  const geographyName = getGeographyName(record.region) || "All";
+  const regionName = getRegionDisplayName(record.region);
 
-  if (record.name) {
-    queryParts.push(record.name);
-  }
-
-  return queryParts.filter(Boolean).join(" ");
+  return [
+    `Search Products: ${productName}`,
+    `Select Geography: ${geographyName}`,
+    `Target Region: ${regionName}`,
+    record.name ? `Offer shown in dashboard: ${record.name}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function getSourceProductName(record) {
