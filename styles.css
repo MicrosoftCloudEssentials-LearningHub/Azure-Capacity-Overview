@@ -92,11 +92,12 @@ textarea {
 
 .hero {
   display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
   margin-bottom: 24px;
-  padding: 28px;
+  padding: 36px 40px 24px;
   border-radius: var(--radius-lg);
   background:
     linear-gradient(135deg, rgba(0, 32, 80, 0.98), rgba(0, 120, 212, 0.82));
@@ -104,10 +105,28 @@ textarea {
   box-shadow: var(--shadow);
 }
 
-.hero-tools {
-  display: grid;
-  gap: 14px;
-  min-width: 240px;
+.hero-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+}
+
+.hero-refresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.hero-refresh-label {
+  opacity: 0.7;
 }
 
 .hero .eyebrow,
@@ -142,9 +161,8 @@ legend {
 }
 
 h1 {
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  line-height: 0.95;
-  max-width: 11ch;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.1;
 }
 
 h2 {
@@ -166,8 +184,6 @@ h2 {
   font-size: 0.94rem;
 }
 
-.timestamp-card,
-.theme-card,
 .panel {
   border: 1px solid var(--line);
   background: var(--surface);
@@ -175,49 +191,20 @@ h2 {
   box-shadow: var(--shadow);
 }
 
-.timestamp-card {
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.theme-card {
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
-  display: grid;
-  gap: 10px;
-  background: color-mix(in oklab, #ffffff 14%, transparent);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
 .theme-toggle-button {
-  padding: 8px 10px;
-  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: var(--radius-sm);
-  background: color-mix(in oklab, var(--surface) 85%, var(--bg));
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
-  width: fit-content;
-}
-
-.timestamp-card {
-  background: color-mix(in oklab, #ffffff 14%, transparent);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-.timestamp-card .timestamp-label,
-.timestamp-card strong {
-  color: #ffffff;
 }
 
 .theme-toggle-button:hover {
-  border-color: color-mix(in oklab, var(--line) 60%, var(--accent));
-  background: color-mix(in oklab, var(--surface) 70%, var(--bg));
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.55);
 }
 
 .theme-toggle-button:focus-visible {
@@ -313,10 +300,29 @@ h2 {
 .panel {
   border-radius: var(--radius-lg);
   padding: 24px;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .controls-panel {
   grid-column: 1 / -1;
+}
+
+.search-bar-panel {
+  grid-column: 1 / -1;
+  overflow: visible;
+}
+
+.global-search-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.global-search-label > span {
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .overview-panel {
@@ -360,7 +366,7 @@ h2 {
 }
 
 .updates-table {
-  min-width: 700px;
+  min-width: 480px;
 }
 
 .search-term-cell {
@@ -444,7 +450,7 @@ h2 {
 
 .workspace-filters {
   margin-bottom: 20px;
-  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: end;
 }
 
@@ -770,7 +776,7 @@ textarea {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 980px;
+  min-width: 640px;
 }
 
 th,
@@ -1113,17 +1119,10 @@ body[data-theme="dark"] .search-highlight {
     padding: 20px;
   }
 
-  .hero,
   .section-heading,
   .overview-header,
   .workspace-header {
     flex-direction: column;
-  }
-
-  .hero-tools,
-  .timestamp-card {
-    min-width: 0;
-    width: 100%;
   }
 
   .form-grid,

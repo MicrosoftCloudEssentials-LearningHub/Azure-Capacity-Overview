@@ -15,33 +15,26 @@
   <body data-theme="light">
     <div class="page-shell">
       <header class="hero">
-        <div>
-          <p class="eyebrow">Azure regional availability planner</p>
-          <h1>Azure Capacity Overview</h1>
-          <p class="hero-copy">
-            Review Azure regional availability, supported SKUs, and deployment capability
-            signals for new workloads without sign-in or subscription scope.
-          </p>
-        </div>
-
-        <div class="hero-tools">
-          <div class="theme-card" aria-label="Theme selector">
-            <span class="timestamp-label">Theme</span>
-            <button
-              id="theme-toggle"
-              class="theme-toggle-button"
-              type="button"
-              aria-label="Toggle dark mode"
-              title="Toggle dark mode"
-            >
-              🌙
-            </button>
-          </div>
-
-          <div class="timestamp-card">
-            <span class="timestamp-label">Last refresh</span>
+        <p class="eyebrow">Azure regional availability planner</p>
+        <h1>Azure Capacity Overview</h1>
+        <p class="hero-copy">
+          Review Azure regional availability, supported SKUs, and deployment capability
+          signals for new workloads without sign-in or subscription scope.
+        </p>
+        <div class="hero-bar">
+          <span class="hero-refresh">
+            <span class="hero-refresh-label">Last refresh</span>
             <strong id="last-refresh">Not refreshed yet</strong>
-          </div>
+          </span>
+          <button
+            id="theme-toggle"
+            class="theme-toggle-button"
+            type="button"
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
+          >
+            🌙
+          </button>
         </div>
       </header>
 
@@ -89,6 +82,14 @@
           </p>
         </section>
 
+        <section class="panel search-bar-panel" aria-label="Search">
+          <label class="global-search-label">
+            <span>Filter both tables</span>
+            <input id="search-input" type="search" placeholder="Try aks, openai, west europe — filters updates and availability at the same time" />
+            <p class="search-hint">Space separates terms. Matches providers, products, regions, and notes across both tables.</p>
+          </label>
+        </section>
+
         <section class="panel overview-panel">
           <div class="overview-header">
             <div>
@@ -99,10 +100,6 @@
           </div>
 
           <div class="overview-block updates-block">
-            <div class="block-heading">
-              <h3>Microsoft update searches</h3>
-              <p class="block-copy">Each row opens Azure Updates using the Microsoft <code>searchterms</code> pattern, for example <code>?searchterms=aks</code>.</p>
-            </div>
             <p id="updates-meta" class="table-meta">No Azure update rows prepared</p>
             <div class="table-wrap">
               <table class="updates-table">
@@ -136,12 +133,6 @@
           </div>
 
           <div class="filter-grid workspace-filters">
-            <label class="field field-search">
-              <span>Search</span>
-              <input id="search-input" type="search" placeholder="Offer, provider, resource type, region" />
-              <p class="search-hint">Try <strong>aks</strong>, <strong>openai</strong>, or <strong>west europe</strong> to match providers, products, regions, and notes.</p>
-            </label>
-
             <label class="field">
               <span>Availability</span>
               <select id="risk-filter">

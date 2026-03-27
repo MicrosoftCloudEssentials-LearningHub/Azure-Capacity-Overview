@@ -473,14 +473,14 @@ function renderUpdatesTable(records, rawSearchTerm = "") {
               <button
                 class="source-copy-button"
                 type="button"
-                data-copy-text="${escapeAttribute(getUpdatesSearchTerm(record))}"
-                data-copy-label="${escapeAttribute(getUpdatesSearchTerm(record))}"
-                data-copy-success="Copied Azure Updates search term for ${escapeAttribute(record.name)}."
-                data-copy-failure="Failed to copy the Azure Updates search term."
+                data-copy-text="${escapeAttribute(getUpdatesUrl(record))}"
+                data-copy-label="Azure Updates URL"
+                data-copy-success="Copied Azure Updates link for ${escapeAttribute(record.name)}."
+                data-copy-failure="Failed to copy the link."
                 data-default-content="📋"
                 data-copied-content="✓"
-                aria-label="Copy Azure Updates search term"
-                title="Copy the exact Azure Updates search term"
+                aria-label="Copy Azure Updates URL"
+                title="Copy Azure Updates search URL for this product"
               >
                 📋
               </button>
@@ -521,7 +521,7 @@ function renderTable(records, rawSearchTerm = "") {
           <td>${renderHighlightedText(record.metricLabel, rawSearchTerm)}</td>
           <td>${renderHighlightedText(formatMetricValue(record.metricValue, record.unit), rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.notes || "", rawSearchTerm)}</td>
-          <td>${renderSourceActions(record, rawSearchTerm)}</td>
+          <td>${renderSourceActions(record)}</td>
         </tr>
       `,
     )
@@ -554,40 +554,25 @@ function handleTableSortClick(event) {
   renderTable(state.filteredRecords, elements.searchInput.value.trim());
 }
 
-function renderSourceActions(record, rawSearchTerm = "") {
+function renderSourceActions(record) {
   return `
     <div class="source-actions">
-      <a class="source-link" href="${escapeAttribute(record.sourceUrl)}" target="_blank" rel="noreferrer" title="${escapeAttribute(record.sourceTitle)}">Products by region</a>
-      <a class="source-link" href="${escapeAttribute(getUpdatesUrl(record))}" target="_blank" rel="noreferrer" title="${escapeAttribute(getUpdatesTitle(record))}">Azure updates</a>
+      <a class="source-link" href="${escapeAttribute(record.sourceUrl)}" target="_blank" rel="noreferrer" title="${escapeAttribute(record.sourceTitle)}">By region</a>
+      <a class="source-link" href="${escapeAttribute(getUpdatesUrl(record))}" target="_blank" rel="noreferrer" title="${escapeAttribute(getUpdatesTitle(record))}">Updates</a>
       <button
         class="source-copy-button"
         type="button"
-        data-copy-text="${escapeAttribute(getSourceProductName(record))}"
-        data-copy-label="${escapeAttribute(getSourceProductName(record))}"
-        data-copy-success="Copied product search term for ${escapeAttribute(record.name)}."
-        data-copy-failure="Failed to copy the product search term."
+        data-copy-text="${escapeAttribute(getUpdatesUrl(record))}"
+        data-copy-label="Azure Updates URL"
+        data-copy-success="Copied Azure Updates link for ${escapeAttribute(record.name)}."
+        data-copy-failure="Failed to copy the link."
         data-default-content="📋"
         data-copied-content="✓"
-        aria-label="Copy product search term"
-        title="Copy the exact product term to paste into the Microsoft Products by Region search box"
+        aria-label="Copy Azure Updates URL"
+        title="Copy Azure Updates search URL for this product"
       >
         📋
       </button>
-      <button
-        class="source-copy-button"
-        type="button"
-        data-copy-text="${escapeAttribute(buildVerificationNote(record))}"
-        data-copy-label="${escapeAttribute(record.name)}"
-        data-copy-success="Copied verification note for ${escapeAttribute(record.name)}."
-        data-copy-failure="Failed to copy the verification note."
-        data-default-content="📋"
-        data-copied-content="✓"
-        aria-label="Copy verification note"
-        title="Copy the product, geography, region, and source links needed to verify this row"
-      >
-        📋
-      </button>
-      <p class="source-context">${renderHighlightedText(getSourceContext(record), rawSearchTerm)}</p>
     </div>
   `;
 }
