@@ -161,7 +161,7 @@
           </div>
 
           <div class="table-wrap">
-            <table>
+            <table id="availability-table">
               <thead>
                 <tr>
                   <th aria-sort="descending">
@@ -171,14 +171,14 @@
                     </button>
                   </th>
                   <th aria-sort="none">
-                    <button class="sort-button" type="button" data-sort-key="providerLabel">
-                      <span>Provider</span>
+                    <button class="sort-button" type="button" data-sort-key="product">
+                      <span>Product</span>
                       <span class="sort-indicator" data-sort-direction="none" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th aria-sort="none">
-                    <button class="sort-button" type="button" data-sort-key="name">
-                      <span>Offer</span>
+                    <button class="sort-button" type="button" data-sort-key="providerLabel">
+                      <span>Provider</span>
                       <span class="sort-indicator" data-sort-direction="none" aria-hidden="true"></span>
                     </button>
                   </th>
@@ -195,20 +195,14 @@
                     </button>
                   </th>
                   <th aria-sort="none">
+                    <button class="sort-button" type="button" data-sort-key="geography">
+                      <span>Geography</span>
+                      <span class="sort-indicator" data-sort-direction="none" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th aria-sort="none">
                     <button class="sort-button" type="button" data-sort-key="region">
                       <span>Region</span>
-                      <span class="sort-indicator" data-sort-direction="none" aria-hidden="true"></span>
-                    </button>
-                  </th>
-                  <th aria-sort="none">
-                    <button class="sort-button" type="button" data-sort-key="metricLabel">
-                      <span>Metric</span>
-                      <span class="sort-indicator" data-sort-direction="none" aria-hidden="true"></span>
-                    </button>
-                  </th>
-                  <th aria-sort="none">
-                    <button class="sort-button" type="button" data-sort-key="metricValue">
-                      <span>Value</span>
                       <span class="sort-indicator" data-sort-direction="none" aria-hidden="true"></span>
                     </button>
                   </th>
@@ -228,7 +222,7 @@
               </thead>
               <tbody id="capacity-table-body">
                 <tr>
-                  <td colspan="9" class="empty-table">Refresh data or load the overview view to populate the dashboard.</td>
+                  <td colspan="8" class="empty-table">Refresh data or load the overview view to populate the dashboard.</td>
                 </tr>
               </tbody>
             </table>

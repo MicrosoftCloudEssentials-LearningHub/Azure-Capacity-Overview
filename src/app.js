@@ -37,7 +37,7 @@ const elements = {
   atRiskToggle: document.querySelector("#at-risk-toggle"),
   tableMeta: document.querySelector("#table-meta"),
   tableBody: document.querySelector("#capacity-table-body"),
-  tableHead: document.querySelector("thead"),
+  tableHead: document.querySelector("#availability-table thead"),
   scopeColumnHeader: document.querySelector("#scope-column-header"),
   filterChips: document.querySelector("#filter-chips"),
 };
@@ -599,12 +599,11 @@ function renderTable(records, rawSearchTerm = "") {
       (record) => `
         <tr class="${rawSearchTerm ? "search-match-row" : ""}">
           <td><span class="risk-pill ${record.availability}">${capitalize(record.availability)}</span></td>
+          <td>${renderHighlightedText(getSourceProductName(record), rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.providerLabel, rawSearchTerm)}</td>
-          <td>${renderHighlightedText(record.name, rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.resourceType, rawSearchTerm)}</td>
-          <td>${renderHighlightedText(record.region, rawSearchTerm)}</td>
-          <td>${renderHighlightedText(record.metricLabel, rawSearchTerm)}</td>
-          <td>${renderHighlightedText(formatMetricValue(record.metricValue, record.unit), rawSearchTerm)}</td>
+          <td>${renderHighlightedText(getGeographyName(record.region) || "—", rawSearchTerm)}</td>
+          <td>${renderHighlightedText(getRegionDisplayName(record.region), rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.notes || "", rawSearchTerm)}</td>
           <td>${renderSourceActions(record)}</td>
         </tr>
@@ -738,7 +737,7 @@ function syncScopeVisibility() {
 }
 
 function getTableColumnCount() {
-  return 9;
+  return 8;
 }
 
 function getDefaultSortDirection(key) {
@@ -748,13 +747,11 @@ function getDefaultSortDirection(key) {
 function getSortLabel(sort) {
   const labels = {
     availability: "Status",
+    product: "Product",
     providerLabel: "Provider",
-    name: "Offer",
     resourceType: "Resource Type",
-    subscriptionId: "Azure Scope",
+    geography: "Geography",
     region: "Region",
-    metricLabel: "Metric",
-    metricValue: "Value",
     notes: "Notes",
     source: "Source",
   };
@@ -794,12 +791,12 @@ function getSortValue(record, key) {
   switch (key) {
     case "availability":
       return record.severity;
+    case "product":
+      return getSourceProductName(record);
+    case "geography":
+      return getGeographyName(record.region) || "";
     case "region":
       return getRegionDisplayName(record.region);
-    case "metricValue":
-      return typeof record.metricValue === "number"
-        ? record.metricValue
-        : formatMetricValue(record.metricValue, record.unit);
     case "notes":
       return record.notes || "";
     case "source":
