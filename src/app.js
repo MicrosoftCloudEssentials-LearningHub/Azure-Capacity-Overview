@@ -74,7 +74,7 @@ function wireEvents() {
     element.addEventListener("change", applyFilters);
   });
 
-  [elements.regionsInput, elements.providerOptions].forEach((element) => {
+  [elements.providerOptions].forEach((element) => {
     element.addEventListener("change", persistSettings);
   });
 }
@@ -87,7 +87,7 @@ function hydrateSavedSettings() {
 
   try {
     const settings = JSON.parse(raw);
-    elements.regionsInput.value = settings.regions ?? "";
+    if (elements.regionsInput) elements.regionsInput.value = settings.regions ?? "";
     applyTheme(settings.theme || "light");
     elements.planningFilter.value = settings.planning || "all";
 
@@ -103,7 +103,7 @@ function hydrateSavedSettings() {
 
 function persistSettings() {
   const settings = {
-    regions: elements.regionsInput.value.trim(),
+    regions: elements.regionsInput ? elements.regionsInput.value.trim() : "",
     providers: getSelectedProviderIds(),
     theme: getCurrentTheme(),
     planning: elements.planningFilter.value,
@@ -141,7 +141,7 @@ function getCurrentTheme() {
 
 async function refreshData() {
   const selectedProviderIds = getSelectedProviderIds();
-  const manualRegions = parseList(elements.regionsInput.value).map(normalizeRegion);
+  const manualRegions = parseList(elements.regionsInput ? elements.regionsInput.value : "").map(normalizeRegion);
 
   if (selectedProviderIds.length === 0) {
     setStatus("Select at least one availability provider to display.", "warn");
