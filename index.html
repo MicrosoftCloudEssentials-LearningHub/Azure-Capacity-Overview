@@ -56,7 +56,7 @@
               <span>Target regions</span>
               <textarea
                 id="regions-input"
-                rows="4"
+                rows="2"
                 placeholder="Optional. Leave blank to use the default overview regions"
               ></textarea>
             </label>
@@ -67,27 +67,58 @@
             </fieldset>
           </div>
 
-          <p class="helper-text">
-            Azure does not expose a public global "free capacity left" feed. This dashboard brings together a lightweight regional view of Azure resource availability using a built-in catalog of regions, SKUs, and provider signals so you can compare the published signals and corroborate them against Microsoft sources.
-          </p>
-          <p class="helper-links">
-            Public Microsoft references:
-            <a href="https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table" target="_blank" rel="noreferrer">Products by region</a>
-            <a href="https://azure.microsoft.com/explore/global-infrastructure/geographies" target="_blank" rel="noreferrer">Geographies</a>
-            <a href="https://learn.microsoft.com/azure/reliability/availability-zones-overview" target="_blank" rel="noreferrer">Availability zones</a>
-            <a href="https://azure.microsoft.com/en-us/updates/" target="_blank" rel="noreferrer">Azure updates</a>
-          </p>
-          <p class="helper-footnote">
-            Products by region is the live Microsoft table for current regional availability. Azure Updates is the planning source for preview, rollout, and future capability signals.
-          </p>
         </section>
 
-        <section class="panel search-bar-panel" aria-label="Search">
-          <label class="global-search-label">
-            <span>Filter both tables</span>
-            <input id="search-input" type="search" placeholder="Try aks, openai, west europe — filters updates and availability at the same time" />
-            <p class="search-hint">Space separates terms. Matches providers, products, regions, and notes across both tables.</p>
-          </label>
+        <section class="panel search-bar-panel" aria-label="Search and filter">
+          <div class="filter-bar">
+            <label class="global-search-label">
+              <span>Filter both tables</span>
+              <input id="search-input" type="search" placeholder="Try aks, openai, west europe — space separates terms, filters both tables" />
+            </label>
+            <div class="filter-bar-controls">
+              <label class="field">
+                <span>Availability</span>
+                <select id="risk-filter">
+                  <option value="all">All</option>
+                  <option value="restricted">Restricted</option>
+                  <option value="preview">Limited / Preview</option>
+                  <option value="available">Available</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Planning horizon</span>
+                <select id="planning-filter">
+                  <option value="all">All signals</option>
+                  <option value="available-now">Available now</option>
+                  <option value="roadmap">Preview and rollout</option>
+                  <option value="constraints">Restrictions</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Provider</span>
+                <select id="provider-filter">
+                  <option value="all">All providers</option>
+                </select>
+              </label>
+              <label id="scope-filter-field" class="field" hidden>
+                <span>Azure scope</span>
+                <select id="subscription-filter">
+                  <option value="all">All scopes</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Region</span>
+                <select id="region-filter">
+                  <option value="all">All regions</option>
+                </select>
+              </label>
+              <label class="checkbox-row results-toggle filter-bar-toggle">
+                <input id="at-risk-toggle" type="checkbox" />
+                <span>Only restricted or limited</span>
+              </label>
+            </div>
+            <p class="search-hint">Filters apply to both the Azure Updates table and the Availability results table simultaneously.</p>
+          </div>
         </section>
 
         <section class="panel overview-panel">
@@ -125,59 +156,8 @@
 
         <section class="panel workspace-panel">
           <div class="workspace-header">
-            <div>
-              <h2>Availability results</h2>
-              <p class="panel-intro">Filter the current dataset, then review the detailed rows and source links below.</p>
-            </div>
+            <h2>Availability results</h2>
             <p id="table-meta" class="table-meta">No availability data loaded</p>
-          </div>
-
-          <div class="filter-grid workspace-filters">
-            <label class="field">
-              <span>Availability</span>
-              <select id="risk-filter">
-                <option value="all">All</option>
-                <option value="restricted">Restricted</option>
-                <option value="preview">Limited</option>
-                <option value="available">Available</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span>Planning horizon</span>
-              <select id="planning-filter">
-                <option value="all">All signals</option>
-                <option value="available-now">Available now</option>
-                <option value="roadmap">Preview and rollout</option>
-                <option value="constraints">Restrictions and blockers</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span>Provider</span>
-              <select id="provider-filter">
-                <option value="all">All providers</option>
-              </select>
-            </label>
-
-            <label id="scope-filter-field" class="field" hidden>
-              <span>Azure scope</span>
-              <select id="subscription-filter">
-                <option value="all">All scopes</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span>Region</span>
-              <select id="region-filter">
-                <option value="all">All regions</option>
-              </select>
-            </label>
-
-            <label class="checkbox-row results-toggle">
-              <input id="at-risk-toggle" type="checkbox" />
-              <span>Only show restricted or limited rows</span>
-            </label>
           </div>
 
           <div class="table-wrap">

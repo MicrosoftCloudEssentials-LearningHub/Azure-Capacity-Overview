@@ -558,18 +558,17 @@ function renderSourceActions(record) {
   return `
     <div class="source-actions">
       <a class="source-link" href="${escapeAttribute(record.sourceUrl)}" target="_blank" rel="noreferrer" title="${escapeAttribute(record.sourceTitle)}">By region</a>
-      <a class="source-link" href="${escapeAttribute(getUpdatesUrl(record))}" target="_blank" rel="noreferrer" title="${escapeAttribute(getUpdatesTitle(record))}">Updates</a>
       <button
         class="source-copy-button"
         type="button"
-        data-copy-text="${escapeAttribute(getUpdatesUrl(record))}"
-        data-copy-label="Azure Updates URL"
-        data-copy-success="Copied Azure Updates link for ${escapeAttribute(record.name)}."
+        data-copy-text="${escapeAttribute(record.sourceUrl)}"
+        data-copy-label="Products by Region URL"
+        data-copy-success="Copied Products by Region link."
         data-copy-failure="Failed to copy the link."
         data-default-content="📋"
         data-copied-content="✓"
-        aria-label="Copy Azure Updates URL"
-        title="Copy Azure Updates search URL for this product"
+        aria-label="Copy Products by Region URL"
+        title="Copy link to the Microsoft Products by Region table"
       >
         📋
       </button>
