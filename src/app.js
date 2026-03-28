@@ -3,30 +3,39 @@ import { PROVIDERS, createProviderOptionsMarkup } from "./providers.js";
 const SETTINGS_KEY = "azure-capacity-overview-settings";
 const DELTA_SNAPSHOT_KEY = "azure-capacity-delta-snapshot";
 
-// All major Azure regions used in the overview catalog
+// All major Azure commercial regions used in the overview catalog
 const DEFAULT_REGIONS = [
   // United States
   "eastus", "eastus2", "westus", "westus2", "westus3",
-  "centralus", "northcentralus", "southcentralus",
+  "centralus", "northcentralus", "southcentralus", "westcentralus",
   // Canada
   "canadacentral", "canadaeast",
   // Brazil
-  "brazilsouth",
+  "brazilsouth", "brazilsoutheast",
+  // Mexico
+  "mexicocentral",
   // Europe
-  "westeurope", "northeurope", "uksouth", "francecentral",
-  "germanywestcentral", "swedencentral", "norwayeast",
+  "westeurope", "northeurope", "uksouth", "ukwest",
+  "francecentral", "germanywestcentral", "swedencentral", "norwayeast",
+  "switzerlandnorth", "italynorth", "polandcentral", "spaincentral",
   // Asia Pacific
-  "southeastasia", "eastasia", "australiaeast", "japaneast",
-  "koreacentral", "centralindia",
+  "southeastasia", "eastasia",
+  "australiaeast", "australiasoutheast", "australiacentral",
+  "japaneast", "japanwest",
+  "koreacentral", "koreasouth",
+  "centralindia", "southindia", "westindia",
   // Middle East
-  "uaenorth", "qatarcentral",
+  "uaenorth", "qatarcentral", "israelcentral",
   // Africa
   "southafricanorth",
+  // New emerging
+  "newzealandnorth", "malaysiawest",
 ];
 
 const state = {
   allRecords: [],
   filteredRecords: [],
+  liveUpdates: [],
   lastRefresh: null,
   regionsScanned: 0,
   loading: false,
@@ -61,6 +70,8 @@ const elements = {
   tableHead: document.querySelector("#availability-table thead"),
   scopeColumnHeader: document.querySelector("#scope-column-header"),
   filterChips: document.querySelector("#filter-chips"),
+  liveFeedContainer: document.querySelector("#live-feed-container"),
+  loadLiveUpdatesButton: document.querySelector("#load-live-updates"),
 };
 
 async function bootstrap() {
@@ -81,6 +92,9 @@ function wireEvents() {
   elements.updatesTableBody.addEventListener("click", handleSourceActionClick);
   elements.tableHead.addEventListener("click", handleTableSortClick);
   elements.filterChips.addEventListener("click", handleChipClick);
+  if (elements.loadLiveUpdatesButton) {
+    elements.loadLiveUpdatesButton.addEventListener("click", handleLoadLiveUpdates);
+  }
 
   [
     elements.searchInput,
@@ -196,6 +210,13 @@ const _RT2 = ["westus", "westus3", "centralus", "northeurope", "francecentral", 
 const _RT3 = ["northcentralus", "southcentralus", "canadaeast", "brazilsouth", "germanywestcentral", "swedencentral", "norwayeast", "eastasia"];
 // Tier 4: Emerging – newer regions, often preview-only for advanced services
 const _RT4 = ["uaenorth", "qatarcentral", "southafricanorth"];
+// Tier 5: Additional well-established regions not in T1–T4
+const _RT5 = ["ukwest", "switzerlandnorth", "westcentralus", "brazilsoutheast",
+              "australiasoutheast", "australiacentral", "japanwest",
+              "koreasouth", "southindia", "westindia", "mexicocentral"];
+// Tier 6: Newest / emerging regions with limited service coverage
+const _RT6 = ["italynorth", "polandcentral", "spaincentral", "israelcentral",
+              "newzealandnorth", "malaysiawest"];
 
 /**
  * Build an availabilityByRegion map from explicit region lists.
@@ -713,8 +734,255 @@ const OVERVIEW_CATALOG = [
   {
     providerId: "monitor-metadata", providerLabel: "Monitor / Log Analytics",
     name: "workspaces", resourceType: "workspaces",
-    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4], [], [], {
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5, ..._RT6], [], [], {
       available: "Azure Monitor Log Analytics · Query and alerting · Workspace-based retention",
+    }),
+  },
+  // ── Azure Functions ──────────────────────────────────────────────────────────
+  {
+    providerId: "web-metadata", providerLabel: "App Service",
+    name: "serverFarms (Functions Premium)", resourceType: "serverFarms",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3], [..._RT4, ..._RT5], _RT6, {
+      available: "Azure Functions Premium Plan · Always-ready instances · VNET integration · Zone-redundant",
+      preview: "Functions Premium Plan in preview in this region",
+      restricted: "Functions Premium not available in this region",
+    }),
+  },
+  // ── Azure Load Balancer ──────────────────────────────────────────────────────
+  {
+    providerId: "network-metadata", providerLabel: "Network",
+    name: "loadBalancers (Standard)", resourceType: "loadBalancers",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5], _RT6, [], {
+      available: "Azure Load Balancer Standard · Zone-redundant frontend · Cross-region load balancing",
+      preview: "Load Balancer Standard in preview in this region",
+    }),
+  },
+  // ── Azure Firewall ───────────────────────────────────────────────────────────
+  {
+    providerId: "network-metadata", providerLabel: "Network",
+    name: "azureFirewalls (Standard)", resourceType: "azureFirewalls",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4], [..._RT5, ..._RT6], {
+      available: "Azure Firewall Standard · Layer 7 filtering · FQDN tags · Threat intelligence",
+      preview: "Azure Firewall Standard in preview in this region",
+      restricted: "Azure Firewall Standard not available in this region",
+    }),
+  },
+  {
+    providerId: "network-metadata", providerLabel: "Network",
+    name: "azureFirewalls (Premium)", resourceType: "azureFirewalls",
+    availabilityByRegion: buildAvailabilityMap(_RT1, [..._RT2, ..._RT3], [..._RT4, ..._RT5, ..._RT6], {
+      available: "Azure Firewall Premium · IDPS · TLS inspection · URL filtering",
+      preview: "Azure Firewall Premium in preview in this region",
+      restricted: "Azure Firewall Premium not available in this region",
+    }),
+  },
+  // ── Azure VPN Gateway ────────────────────────────────────────────────────────
+  {
+    providerId: "network-metadata", providerLabel: "Network",
+    name: "virtualNetworkGateways (VPN)", resourceType: "virtualNetworkGateways",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5], _RT6, [], {
+      available: "Azure VPN Gateway · Site-to-site and P2S · Zone-redundant VpnGw5AZ",
+      preview: "VPN Gateway in preview in this region",
+    }),
+  },
+  // ── Azure ExpressRoute ───────────────────────────────────────────────────────
+  {
+    providerId: "network-metadata", providerLabel: "Network",
+    name: "expressRouteCircuits", resourceType: "expressRouteCircuits",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4, ..._RT5], _RT6, {
+      available: "Azure ExpressRoute · Private connectivity · FastPath up to 100 Gbps · Zone-redundant gateways",
+      preview: "ExpressRoute in preview or limited rollout",
+      restricted: "ExpressRoute not available in this region",
+    }),
+  },
+  // ── Azure Bastion ────────────────────────────────────────────────────────────
+  {
+    providerId: "network-metadata", providerLabel: "Network",
+    name: "bastionHosts", resourceType: "bastionHosts",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3], [..._RT4, ..._RT5], _RT6, {
+      available: "Azure Bastion · Secure RDP and SSH over TLS · No public IP required on VM",
+      preview: "Azure Bastion in preview in this region",
+      restricted: "Azure Bastion not available in this region",
+    }),
+  },
+  // ── Azure Front Door / CDN ───────────────────────────────────────────────────
+  {
+    providerId: "cdn-metadata", providerLabel: "CDN / Front Door",
+    name: "profiles (Standard)", resourceType: "profiles",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5, ..._RT6], [], [], {
+      available: "Azure Front Door Standard · Global CDN · Custom WAF · HTTPS acceleration",
+    }),
+  },
+  {
+    providerId: "cdn-metadata", providerLabel: "CDN / Front Door",
+    name: "profiles (Premium)", resourceType: "profiles",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3], [..._RT4, ..._RT5], _RT6, {
+      available: "Azure Front Door Premium · Private Link origins · Bot protection · Security analytics",
+      preview: "Azure Front Door Premium in preview in this region",
+      restricted: "Azure Front Door Premium not available in this region",
+    }),
+  },
+  // ── Azure Backup ─────────────────────────────────────────────────────────────
+  {
+    providerId: "backup-metadata", providerLabel: "Backup",
+    name: "vaults (Backup)", resourceType: "vaults",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5], _RT6, [], {
+      available: "Azure Backup · VM, disk, SQL, SAP, BLOB backup · Cross-region restore",
+      preview: "Azure Backup in preview in this region",
+    }),
+  },
+  // ── Azure Site Recovery ──────────────────────────────────────────────────────
+  {
+    providerId: "backup-metadata", providerLabel: "Backup",
+    name: "vaults (Site Recovery)", resourceType: "vaults",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4, ..._RT5], _RT6, {
+      available: "Azure Site Recovery · VM replication · Failover and failback · DR orchestration",
+      preview: "Site Recovery in preview in this region",
+      restricted: "Site Recovery not available in this region",
+    }),
+  },
+  // ── Azure Event Grid ─────────────────────────────────────────────────────────
+  {
+    providerId: "eventgrid-metadata", providerLabel: "Event Grid",
+    name: "topics", resourceType: "topics",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5], _RT6, [], {
+      available: "Azure Event Grid · Serverless event routing · Push delivery · CloudEvents",
+      preview: "Event Grid in preview in this region",
+    }),
+  },
+  {
+    providerId: "eventgrid-metadata", providerLabel: "Event Grid",
+    name: "namespaces (MQTT)", resourceType: "namespaces",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4], [..._RT5, ..._RT6], {
+      available: "Azure Event Grid Namespaces · MQTT v5 broker · High-fan-out push · Zone-redundant",
+      preview: "Event Grid Namespaces in preview in this region",
+      restricted: "Event Grid Namespaces not available in this region",
+    }),
+  },
+  // ── Azure HDInsight ──────────────────────────────────────────────────────────
+  {
+    providerId: "hdinsight-metadata", providerLabel: "HDInsight",
+    name: "clusters", resourceType: "clusters",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], _RT3, [..._RT4, ..._RT5, ..._RT6], {
+      available: "Azure HDInsight · Managed Hadoop, Spark, Kafka, HBase, Interactive Query",
+      preview: "HDInsight in preview or limited rollout",
+      restricted: "HDInsight not available in this region",
+    }),
+  },
+  // ── Azure AI Document Intelligence ──────────────────────────────────────────
+  {
+    providerId: "cognitive-skus", providerLabel: "Cognitive Services SKUs",
+    name: "DocumentIntelligence S0", resourceType: "accounts",
+    availabilityByRegion: buildAvailabilityMap(
+      ["eastus", "westus2", "westeurope", "uksouth", "swedencentral", "australiaeast", "japaneast", "francecentral"],
+      ["eastus2", "canadacentral", "southeastasia", "koreacentral", "centralindia", "norwayeast"],
+      [..._RT3, ..._RT4, ..._RT5, ..._RT6],
+      {
+        available: "Azure AI Document Intelligence · Form + layout analysis · Prebuilt models · Custom models",
+        preview: "Document Intelligence in preview in this region",
+        restricted: "Document Intelligence not available in this region",
+      }
+    ),
+  },
+  // ── Azure AI Vision ──────────────────────────────────────────────────────────
+  {
+    providerId: "cognitive-skus", providerLabel: "Cognitive Services SKUs",
+    name: "ComputerVision S1", resourceType: "accounts",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4], [..._RT5, ..._RT6], {
+      available: "Azure AI Vision · Image analysis · OCR · Spatial analysis · Background removal",
+      preview: "Azure AI Vision in preview in this region",
+      restricted: "Azure AI Vision not available in this region",
+    }),
+  },
+  // ── Azure AI Language ────────────────────────────────────────────────────────
+  {
+    providerId: "cognitive-skus", providerLabel: "Cognitive Services SKUs",
+    name: "TextAnalytics S1", resourceType: "accounts",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4], [..._RT5, ..._RT6], {
+      available: "Azure AI Language · NLP · Sentiment, NER, summarization, CLU, custom classification",
+      preview: "Azure AI Language in preview in this region",
+      restricted: "Azure AI Language not available in this region",
+    }),
+  },
+  // ── Azure AI Speech ──────────────────────────────────────────────────────────
+  {
+    providerId: "cognitive-skus", providerLabel: "Cognitive Services SKUs",
+    name: "SpeechServices S0", resourceType: "accounts",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4], [..._RT5, ..._RT6], {
+      available: "Azure AI Speech · STT, TTS, translation · Custom neural voice · Speaker recognition",
+      preview: "Azure AI Speech in preview in this region",
+      restricted: "Azure AI Speech not available in this region",
+    }),
+  },
+  // ── Azure Bot Service ────────────────────────────────────────────────────────
+  {
+    providerId: "bot-metadata", providerLabel: "Bot Service",
+    name: "botServices", resourceType: "botServices",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], _RT3, [..._RT4, ..._RT5, ..._RT6], {
+      available: "Azure AI Bot Service · Multi-channel bot hosting · Copilot Studio integration",
+      preview: "Bot Service in preview in this region",
+      restricted: "Bot Service not available in this region",
+    }),
+  },
+  // ── Azure Virtual Desktop ────────────────────────────────────────────────────
+  {
+    providerId: "avd-metadata", providerLabel: "Virtual Desktop",
+    name: "hostPools", resourceType: "hostPools",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2], [..._RT3, ..._RT4], [..._RT5, ..._RT6], {
+      available: "Azure Virtual Desktop · Multi-session Windows · FSLogix profile containers",
+      preview: "Azure Virtual Desktop in preview in this region",
+      restricted: "Azure Virtual Desktop not available in this region",
+    }),
+  },
+  // ── Azure Data Lake Storage Gen2 ─────────────────────────────────────────────
+  {
+    providerId: "storage-metadata", providerLabel: "Storage",
+    name: "Data Lake Storage Gen2", resourceType: "storageAccounts",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5], _RT6, [], {
+      available: "Azure Data Lake Storage Gen2 · Hierarchical namespace · Analytics-optimized access",
+      preview: "ADLS Gen2 in preview in this region",
+    }),
+  },
+  // ── Azure Managed Disks ───────────────────────────────────────────────────────
+  {
+    providerId: "disk-metadata", providerLabel: "Disk Storage",
+    name: "disks (Ultra)", resourceType: "disks",
+    availabilityByRegion: buildAvailabilityMap(
+      ["eastus", "eastus2", "westus2", "westeurope", "uksouth", "southeastasia", "australiaeast"],
+      ["japaneast", "koreacentral", "centralindia", "francecentral", "swedencentral", "brazilsouth"],
+      [..._RT3, ..._RT4, ..._RT5, ..._RT6],
+      {
+        available: "Ultra Disk · Sub-ms latency · Up to 32 TB · Configurable IOPS and throughput",
+        preview: "Ultra Disk in limited preview or rollout",
+        restricted: "Ultra Disk not available in this region",
+      }
+    ),
+  },
+  {
+    providerId: "disk-metadata", providerLabel: "Disk Storage",
+    name: "disks (Premium SSD v2)", resourceType: "disks",
+    availabilityByRegion: buildAvailabilityMap(_RT1, [..._RT2, ..._RT3], [..._RT4, ..._RT5, ..._RT6], {
+      available: "Premium SSD v2 · Flexible IOPS/throughput · No pre-provisioning needed",
+      preview: "Premium SSD v2 in preview in this region",
+      restricted: "Premium SSD v2 not available in this region",
+    }),
+  },
+  // ── Azure Automation ─────────────────────────────────────────────────────────
+  {
+    providerId: "automation-metadata", providerLabel: "Automation",
+    name: "automationAccounts", resourceType: "automationAccounts",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT5], [..._RT4, ..._RT6], [], {
+      available: "Azure Automation · PowerShell and Python runbooks · Update Management · DSC",
+      preview: "Azure Automation in preview in this region",
+    }),
+  },
+  // ── Application Insights ─────────────────────────────────────────────────────
+  {
+    providerId: "monitor-metadata", providerLabel: "Monitor / Log Analytics",
+    name: "components (Application Insights)", resourceType: "components",
+    availabilityByRegion: buildAvailabilityMap([..._RT1, ..._RT2, ..._RT3, ..._RT4, ..._RT5], _RT6, [], {
+      available: "Application Insights · Distributed tracing · Live metrics · Smart detection · Availability tests",
+      preview: "Application Insights in preview in this region",
     }),
   },
 ];
@@ -806,6 +1074,140 @@ function annotateWithDelta(records, snapshot) {
   });
 }
 
+// ── Live Azure Updates RSS feed ───────────────────────────────────────────────
+async function fetchAzureUpdatesRSS() {
+  const response = await fetch("https://azure.microsoft.com/en-us/updates/feed/", { mode: "cors" });
+  if (!response.ok) throw new Error(`Feed returned HTTP ${response.status}`);
+  return parseRSSFeed(await response.text());
+}
+
+function parseRSSFeed(text) {
+  const doc = new DOMParser().parseFromString(text, "application/xml");
+  if (doc.querySelector("parsererror")) throw new Error("Could not parse RSS XML");
+
+  // Support both Atom (<entry>) and RSS 2.0 (<item>)
+  const items = [...doc.querySelectorAll("entry, item")];
+  const STATUS_TERMS = new Set(["Generally Available", "In Preview", "In Development", "Retired"]);
+
+  return items.map((item) => {
+    const title = item.querySelector("title")?.textContent?.trim() || "";
+    const linkEl = item.querySelector("link");
+    const link = linkEl?.getAttribute("href") || linkEl?.textContent?.trim() || "";
+    const updated = item.querySelector("updated, pubDate")?.textContent?.trim() || "";
+    const summary = item.querySelector("summary, description")?.textContent?.trim()
+      .replace(/<[^>]*>/g, "").slice(0, 200) || "";
+    const categories = [...item.querySelectorAll("category")]
+      .map((c) => c.getAttribute("term") || c.textContent.trim()).filter(Boolean);
+
+    const status = categories.find((c) => STATUS_TERMS.has(c)) || "Generally Available";
+    const products = categories.filter((c) => !STATUS_TERMS.has(c));
+    const publishedDate = updated ? new Date(updated) : null;
+
+    return { title, link, summary, status, products, publishedDate };
+  });
+}
+
+function renderLiveUpdates(entries, rawSearchTerm = "") {
+  const container = elements.liveFeedContainer;
+  if (!container) return;
+
+  const STATUS_CLASS = {
+    "Generally Available": "available",
+    "In Preview": "preview",
+    "In Development": "preview",
+    "Retired": "restricted",
+  };
+
+  const q = rawSearchTerm.toLowerCase();
+  const filtered = q
+    ? entries.filter((e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.summary.toLowerCase().includes(q) ||
+        e.products.some((p) => p.toLowerCase().includes(q))
+      )
+    : entries;
+
+  const metaEl = container.querySelector(".live-feed-meta");
+  const bodyEl = container.querySelector("#live-feed-tbody");
+  if (!metaEl || !bodyEl) return;
+
+  metaEl.textContent = q
+    ? `${filtered.length} of ${entries.length} updates match "${rawSearchTerm}"`
+    : `${entries.length} latest updates from azure.microsoft.com/en-us/updates`;
+
+  if (filtered.length === 0) {
+    bodyEl.innerHTML = `<tr><td colspan="5" class="empty-table">No updates match "${escapeHtml(rawSearchTerm)}"</td></tr>`;
+    return;
+  }
+
+  bodyEl.innerHTML = filtered.map((entry) => {
+    const statusClass = STATUS_CLASS[entry.status] || "available";
+    const dateStr = entry.publishedDate
+      ? entry.publishedDate.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      : "—";
+    const productTags = entry.products.slice(0, 4)
+      .map((p) => `<span class="product-tag">${escapeHtml(p)}</span>`).join(" ");
+    return `
+      <tr>
+        <td><span class="risk-pill ${statusClass}">${escapeHtml(entry.status)}</span></td>
+        <td class="live-update-title">${renderHighlightedText(entry.title, rawSearchTerm)}</td>
+        <td>${productTags}</td>
+        <td class="live-update-date">${dateStr}</td>
+        <td><a class="source-link" href="${escapeAttribute(entry.link)}" target="_blank" rel="noreferrer">Open ↗</a></td>
+      </tr>`;
+  }).join("");
+}
+
+async function handleLoadLiveUpdates() {
+  const btn = elements.loadLiveUpdatesButton;
+  const container = elements.liveFeedContainer;
+  if (!btn || !container) return;
+
+  btn.disabled = true;
+  btn.textContent = "Loading…";
+
+  // Build the table scaffold once
+  container.innerHTML = `
+    <p class="live-feed-meta table-meta">Fetching Azure Updates feed…</p>
+    <div class="table-wrap">
+      <table class="updates-table live-feed-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Title</th>
+            <th>Products</th>
+            <th>Date</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody id="live-feed-tbody">
+          <tr><td colspan="5" class="empty-table">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+
+  try {
+    const entries = await fetchAzureUpdatesRSS();
+    state.liveUpdates = entries;
+    renderLiveUpdates(entries, elements.searchInput.value.trim());
+    btn.textContent = `Reload feed (${entries.length})`;
+  } catch (err) {
+    const isCors = err.message === "Failed to fetch" || err.message.startsWith("NetworkError");
+    container.innerHTML = `
+      <div class="source-notice">
+        <span class="source-notice-icon">⚠️</span>
+        <span>${isCors
+          ? "The Azure Updates RSS feed is blocked by CORS — GitHub Pages serves from a different origin and browsers block the request. Use the direct link to browse all 9,000+ updates on Microsoft."
+          : escapeHtml(err.message)}</span>
+        <a class="source-notice-link" href="https://azure.microsoft.com/en-us/updates/" target="_blank" rel="noreferrer">Open all Azure Updates ↗</a>
+      </div>`;
+    btn.textContent = "Retry";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 function enrichRecord(record) {
   const availability = record.availability || "available";
   const searchContent = [
@@ -911,6 +1313,9 @@ function applyFilters() {
   renderUpdatesTable(state.filteredRecords, rawSearchTerm);
   renderTable(state.filteredRecords, rawSearchTerm);
   renderFilterChips();
+  if (state.liveUpdates.length) {
+    renderLiveUpdates(state.liveUpdates, rawSearchTerm);
+  }
 }
 
 function renderFilterChips() {
@@ -1373,6 +1778,14 @@ function getUpdatesSearchTerm(record) {
     "servicefabric-metadata":  "Azure Service Fabric",
     "purview-metadata":        "Microsoft Purview",
     "monitor-metadata":        "Azure Monitor",
+    "cdn-metadata":            "Azure Front Door",
+    "backup-metadata":         "Azure Backup",
+    "eventgrid-metadata":      "Azure Event Grid",
+    "hdinsight-metadata":      "Azure HDInsight",
+    "bot-metadata":            "Azure AI Bot Service",
+    "avd-metadata":            "Azure Virtual Desktop",
+    "disk-metadata":           "Azure Managed Disks",
+    "automation-metadata":     "Azure Automation",
   };
   return specificTerms[record.providerId] || getSourceProductName(record);
 }
@@ -1451,6 +1864,14 @@ function getSourceProductName(record) {
     "servicefabric-metadata": "Azure Service Fabric",
     "purview-metadata": "Microsoft Purview",
     "monitor-metadata": "Azure Monitor",
+    "cdn-metadata": "Azure Front Door",
+    "backup-metadata": "Azure Backup",
+    "eventgrid-metadata": "Azure Event Grid",
+    "hdinsight-metadata": "Azure HDInsight",
+    "bot-metadata": "Azure AI Bot Service",
+    "avd-metadata": "Azure Virtual Desktop",
+    "disk-metadata": "Azure Managed Disks",
+    "automation-metadata": "Azure Automation",
   };
 
   return providerProductNames[record.providerId] || record.providerLabel;

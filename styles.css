@@ -392,6 +392,48 @@ h2 {
   grid-column: 1 / -1;
 }
 
+.live-feed-panel {
+  grid-column: 1 / -1;
+}
+
+.live-feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.live-feed-table {
+  min-width: 740px;
+}
+
+.live-update-title {
+  max-width: 440px;
+  white-space: normal;
+  line-height: 1.45;
+}
+
+.live-update-date {
+  white-space: nowrap;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.product-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.71rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
+  color: var(--accent-strong);
+  border: 1px solid color-mix(in oklab, var(--accent) 20%, transparent);
+  margin: 1px 2px 1px 0;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
 .section-heading {
   display: flex;
   justify-content: space-between;

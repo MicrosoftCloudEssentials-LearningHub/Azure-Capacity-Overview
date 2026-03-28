@@ -195,6 +195,15 @@ export const PROVIDERS = [
   createProviderMetadataProvider({ id: "servicefabric-metadata", label: "Service Fabric", namespace: "Microsoft.ServiceFabric" }),
   createProviderMetadataProvider({ id: "purview-metadata", label: "Microsoft Purview", namespace: "Microsoft.Purview" }),
   createProviderMetadataProvider({ id: "monitor-metadata", label: "Monitor / Log Analytics", namespace: "Microsoft.OperationalInsights" }),
+  // ── CDN, Backup, Event Grid, HDInsight, Bot, AVD, Disk, Automation ──────────
+  createProviderMetadataProvider({ id: "cdn-metadata", label: "CDN / Front Door", namespace: "Microsoft.Cdn" }),
+  createProviderMetadataProvider({ id: "backup-metadata", label: "Backup", namespace: "Microsoft.RecoveryServices" }),
+  createProviderMetadataProvider({ id: "eventgrid-metadata", label: "Event Grid", namespace: "Microsoft.EventGrid" }),
+  createProviderMetadataProvider({ id: "hdinsight-metadata", label: "HDInsight", namespace: "Microsoft.HDInsight" }),
+  createProviderMetadataProvider({ id: "bot-metadata", label: "Bot Service", namespace: "Microsoft.BotService" }),
+  createProviderMetadataProvider({ id: "avd-metadata", label: "Virtual Desktop", namespace: "Microsoft.DesktopVirtualization" }),
+  createProviderMetadataProvider({ id: "disk-metadata", label: "Disk Storage", namespace: "Microsoft.Compute", resourceTypes: ["disks"] }),
+  createProviderMetadataProvider({ id: "automation-metadata", label: "Automation", namespace: "Microsoft.Automation" }),
 ];
 
 export const PROVIDER_MAP = new Map(PROVIDERS.map((provider) => [provider.id, provider]));
