@@ -18,8 +18,9 @@
         <p class="eyebrow">Azure regional availability planner</p>
         <h1>Azure Capacity Overview</h1>
         <p class="hero-copy">
-          Review Azure regional availability, supported SKUs, and deployment capability
-          signals for new workloads without sign-in or subscription scope.
+          A local planning companion for Azure regional availability. The tables below are
+          a curated offline reference — for live data, use the source links provided
+          in each section to open the official Microsoft pages directly.
         </p>
         <div class="hero-bar">
           <span class="hero-refresh">
@@ -114,9 +115,15 @@
           <div class="overview-header">
             <div>
               <h2>Azure updates planning table</h2>
-              <p class="panel-intro">Use Microsoft Azure Updates searches for roadmap, preview, and rollout planning directly from the products in the current view.</p>
+              <p class="panel-intro">This table is a local planning aid with direct links to the official <strong>Azure Updates</strong> page per service. The live Microsoft source has 9,000+ published updates — click any row's link to open the real filtered view.</p>
             </div>
             <div id="status-badge" class="status-badge neutral">Awaiting refresh</div>
+          </div>
+
+          <div class="source-notice">
+            <span class="source-notice-icon">ℹ️</span>
+            <span>This app cannot fetch live Microsoft data directly (browser CORS restriction on a static GitHub Pages site). All rows below are a curated offline reference that links out to the real sources.</span>
+            <a class="source-notice-link" href="https://azure.microsoft.com/en-us/updates/" target="_blank" rel="noreferrer">Open all 9,000+ Azure Updates ↗</a>
           </div>
 
           <div class="overview-block updates-block">
@@ -147,6 +154,12 @@
           <div class="workspace-header">
             <h2>Availability results</h2>
             <p id="table-meta" class="table-meta">No availability data loaded</p>
+          </div>
+
+          <div class="source-notice">
+            <span class="source-notice-icon">ℹ️</span>
+            <span>This is a curated offline reference for 33 services across 27 regions. For the full live table of all Azure products across all regions, open the official Microsoft source.</span>
+            <a class="source-notice-link" href="https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/table" target="_blank" rel="noreferrer">Open Products by Region ↗</a>
           </div>
 
           <div class="table-wrap">
