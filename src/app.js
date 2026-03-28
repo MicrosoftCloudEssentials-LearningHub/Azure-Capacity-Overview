@@ -95,6 +95,9 @@ function wireEvents() {
     element.addEventListener("change", applyFilters);
   });
 
+  // The native ✕ clear button on <input type="search"> fires "search" not "input"
+  elements.searchInput.addEventListener("search", applyFilters);
+
   [elements.providerOptions].forEach((element) => {
     element.addEventListener("change", persistSettings);
   });
@@ -771,7 +774,7 @@ function renderFilterChips() {
   }
 
   if (elements.regionFilter.value !== "all") {
-    chips.push({ label: `Region: ${elements.regionFilter.value}`, filterType: "region" });
+    chips.push({ label: `Region: ${getRegionDisplayName(elements.regionFilter.value)}`, filterType: "region" });
   }
 
   if (elements.atRiskToggle.checked) {
@@ -1353,20 +1356,20 @@ function matchesSearch(record, rawQuery) {
     return true;
   }
 
+  // Fast path: full phrase is a direct substring match
   if (record.searchIndex.includes(rawQuery) || record.searchNeedle.includes(normalizedQuery)) {
     return true;
   }
 
-  const queryTokens = normalizedQuery.split(" ").filter(Boolean);
+  // Multi-word: every space-separated token must appear as a substring.
+  // Subsequence matching is intentionally omitted — it is too permissive for
+  // short tokens (e.g. "aks" matches Key Vault via a…k…s across unrelated words).
+  const queryTokens = normalizedQuery.split(" ").filter((t) => t.length > 1);
   if (!queryTokens.length) {
     return true;
   }
 
-  if (queryTokens.every((token) => record.searchNeedle.includes(token))) {
-    return true;
-  }
-
-  return queryTokens.every((token) => isSubsequence(token, record.searchCompact));
+  return queryTokens.every((token) => record.searchNeedle.includes(token));
 }
 
 function normalizeSearchValue(value) {
