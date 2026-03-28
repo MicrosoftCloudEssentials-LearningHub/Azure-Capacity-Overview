@@ -1144,7 +1144,7 @@ function renderLiveUpdates(entries, rawSearchTerm = "") {
     const statusClass = STATUS_CLASS[entry.status] || "available";
     const dateStr = entry.publishedDate
       ? entry.publishedDate.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-      : "—";
+      : "n/a";
     const productTags = entry.products.slice(0, 4)
       .map((p) => `<span class="product-tag">${escapeHtml(p)}</span>`).join(" ");
     return `
@@ -1197,7 +1197,7 @@ async function handleLoadLiveUpdates() {
       <div class="source-notice">
         <span class="source-notice-icon">⚠️</span>
         <span>${isCors
-          ? "The Azure Updates RSS feed is blocked by CORS — GitHub Pages serves from a different origin and browsers block the request. Use the direct link to browse all 9,000+ updates on Microsoft."
+          ? "The Azure Updates RSS feed is blocked by CORS. GitHub Pages serves from a different origin and browsers block the request. Use the direct link to browse all 9,000+ updates on Microsoft."
           : escapeHtml(err.message)}</span>
         <a class="source-notice-link" href="https://azure.microsoft.com/en-us/updates/" target="_blank" rel="noreferrer">Open all Azure Updates ↗</a>
       </div>`;
@@ -1520,7 +1520,7 @@ function renderTable(records, rawSearchTerm = "") {
           <td>${renderHighlightedText(getSourceProductName(record), rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.providerLabel, rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.resourceType, rawSearchTerm)}</td>
-          <td>${renderHighlightedText(getGeographyName(record.region) || "—", rawSearchTerm)}</td>
+          <td>${renderHighlightedText(getGeographyName(record.region) || "", rawSearchTerm)}</td>
           <td>${renderHighlightedText(getRegionDisplayName(record.region), rawSearchTerm)}</td>
           <td>${renderHighlightedText(record.notes || "", rawSearchTerm)}</td>
           <td>${renderSourceActions(record)}</td>
